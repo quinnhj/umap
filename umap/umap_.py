@@ -1016,7 +1016,7 @@ def simplicial_set_embedding(
     n_vertices = graph.shape[1]
 
     if sleep_duration is not None:
-        time.sleep(self.sleep_duration)
+        time.sleep(sleep_duration)
 
     if n_epochs <= 0:
         # For smaller datasets we can use more epochs
