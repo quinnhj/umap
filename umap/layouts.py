@@ -2,7 +2,7 @@ import numpy as np
 import numba
 import umap.distances as dist
 from umap.utils import tau_rand_int
-
+import time
 
 @numba.njit()
 def clip(val):
@@ -149,6 +149,7 @@ def optimize_layout_euclidean(
     negative_sample_rate=5.0,
     parallel=False,
     verbose=False,
+    sleep_duration=None
 ):
     """Improve an embedding using stochastic gradient descent to minimize the
     fuzzy set cross entropy between the 1-skeletons of the high dimensional
@@ -232,7 +233,8 @@ def optimize_layout_euclidean(
         )
 
         alpha = initial_alpha * (1.0 - (float(n) / float(n_epochs)))
-
+        if sleep_duration is not None:
+            time.sleep(sleep_duration)
         if verbose and n % int(n_epochs / 10) == 0:
             print("\tcompleted ", n, " / ", n_epochs, "epochs")
 
@@ -257,6 +259,7 @@ def optimize_layout_generic(
     output_metric=dist.euclidean,
     output_metric_kwds=(),
     verbose=False,
+    sleep_duration=None
 ):
     """Improve an embedding using stochastic gradient descent to minimize the
     fuzzy set cross entropy between the 1-skeletons of the high dimensional
@@ -393,7 +396,8 @@ def optimize_layout_generic(
                 )
 
         alpha = initial_alpha * (1.0 - (float(n) / float(n_epochs)))
-
+        if sleep_duration is not None:
+            time.sleep(sleep_duration)
         if verbose and n % int(n_epochs / 10) == 0:
             print("\tcompleted ", n, " / ", n_epochs, "epochs")
 

@@ -926,6 +926,7 @@ def simplicial_set_embedding(
     euclidean_output=True,
     parallel=False,
     verbose=False,
+    sleep_duration=None
 ):
     """Perform a fuzzy simplicial set embedding, using a specified
     initialisation method and then minimizing the fuzzy set cross entropy
@@ -1014,6 +1015,9 @@ def simplicial_set_embedding(
     graph.sum_duplicates()
     n_vertices = graph.shape[1]
 
+    if sleep_duration is not None:
+        time.sleep(self.sleep_duration)
+
     if n_epochs <= 0:
         # For smaller datasets we can use more epochs
         if graph.shape[0] <= 10000:
@@ -1090,6 +1094,7 @@ def simplicial_set_embedding(
             negative_sample_rate,
             parallel=parallel,
             verbose=verbose,
+            sleep_duration=sleep_duration,
         )
     else:
         embedding = optimize_layout_generic(
@@ -1109,6 +1114,7 @@ def simplicial_set_embedding(
             output_metric,
             tuple(output_metric_kwds.values()),
             verbose=verbose,
+            sleep_duration=sleep_duration,
         )
 
     return embedding
@@ -1378,6 +1384,7 @@ class UMAP(BaseEstimator):
         force_approximation_algorithm=False,
         verbose=False,
         unique=False,
+        sleep_duration=None
     ):
         self.n_neighbors = n_neighbors
         self.metric = metric
@@ -1408,6 +1415,7 @@ class UMAP(BaseEstimator):
         self.force_approximation_algorithm = force_approximation_algorithm
         self.verbose = verbose
         self.unique = unique
+        self.sleep_duration = sleep_duration
 
         self.a = a
         self.b = b
@@ -1690,6 +1698,9 @@ class UMAP(BaseEstimator):
 
         random_state = check_random_state(self.random_state)
 
+        if self.sleep_duration is not None:
+            time.sleep(self.sleep_duration)
+
         if self.verbose:
             print("Construct fuzzy simplicial set")
 
@@ -1801,6 +1812,9 @@ class UMAP(BaseEstimator):
                 verbose=self.verbose,
             )
 
+            if self.sleep_duration is not None:
+                time.sleep(self.sleep_duration)
+
             self.graph_, self._sigmas, self._rhos = fuzzy_simplicial_set(
                 X[index],
                 self.n_neighbors,
@@ -1815,6 +1829,9 @@ class UMAP(BaseEstimator):
                 True,
                 self.verbose,
             )
+
+            if self.sleep_duration is not None:
+                time.sleep(self.sleep_duration)
 
             if not _HAVE_PYNNDESCENT:
                 self._search_graph = scipy.sparse.lil_matrix(
@@ -1959,6 +1976,9 @@ class UMAP(BaseEstimator):
         else:
             n_epochs = self.n_epochs
 
+        if self.sleep_duration is not None:
+            time.sleep(self.sleep_duration)
+
         if self.verbose:
             print(ts(), "Construct embedding")
 
@@ -1981,6 +2001,7 @@ class UMAP(BaseEstimator):
             self.output_metric in ("euclidean", "l2"),
             self.random_state is None,
             self.verbose,
+            self.sleep_duration
         )[inverse]
 
         if self.verbose:
