@@ -5,6 +5,8 @@ from __future__ import print_function
 
 import numpy as np
 import numba
+import logging
+import time
 
 from umap.utils import (
     tau_rand,
@@ -21,7 +23,7 @@ import umap.distances as dist
 from umap.rp_tree import search_flat_tree
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def init_current_graph(data, dist, n_neighbors, rng_state):
     current_graph = make_heap(data.shape[0], n_neighbors)
     for i in range(data.shape[0]):
@@ -33,7 +35,7 @@ def init_current_graph(data, dist, n_neighbors, rng_state):
     return current_graph
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def init_rp_tree(data, dist, current_graph, leaf_array, tried=None):
     if tried is None:
         tried = set([(-1, -1)])
@@ -57,7 +59,7 @@ def init_rp_tree(data, dist, current_graph, leaf_array, tried=None):
                     tried.add((q, p))
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def nn_descent_internal_low_memory(
     current_graph,
     data,
@@ -73,6 +75,11 @@ def nn_descent_internal_low_memory(
     n_vertices = data.shape[0]
 
     for n in range(n_iters):
+        with numba.objmode():
+            # Call into object mode to temporarily sleep (and thus release GIL)
+            logging.info("(obj mode) low mem nn descent iter.")
+            time.sleep(0.05)
+
         if verbose:
             print("\t", n, " / ", n_iters)
 
@@ -110,7 +117,7 @@ def nn_descent_internal_low_memory(
             return
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def nn_descent_internal_high_memory(
     current_graph,
     data,
@@ -127,6 +134,11 @@ def nn_descent_internal_high_memory(
     n_vertices = data.shape[0]
 
     for n in range(n_iters):
+        with numba.objmode():
+            # Call into object mode to temporarily sleep (and thus release GIL)
+            logging.info("(obj mode) high mem nn descent iter.")
+            time.sleep(0.05)
+
         if verbose:
             print("\t", n, " / ", n_iters)
 
@@ -168,7 +180,7 @@ def nn_descent_internal_high_memory(
             return
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def nn_descent(
     data,
     n_neighbors,
@@ -229,7 +241,7 @@ def nn_descent(
     return deheap_sort(current_graph)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def init_from_random(n_neighbors, data, query_points, heap, rng_state, dist):
     for i in range(query_points.shape[0]):
         indices = rejection_sample(n_neighbors, data.shape[0], rng_state)
@@ -241,7 +253,7 @@ def init_from_random(n_neighbors, data, query_points, heap, rng_state, dist):
     return
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def init_from_tree(tree, data, query_points, heap, rng_state, dist):
     for i in range(query_points.shape[0]):
         indices = search_flat_tree(

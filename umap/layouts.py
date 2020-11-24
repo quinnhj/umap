@@ -3,6 +3,7 @@ import numba
 import umap.distances as dist
 from umap.utils import tau_rand_int
 import time
+import logging
 
 @numba.njit()
 def clip(val):
@@ -209,7 +210,7 @@ def optimize_layout_euclidean(
     epoch_of_next_sample = epochs_per_sample.copy()
 
     optimize_fn = numba.njit(
-        _optimize_layout_euclidean_single_epoch, fastmath=True, parallel=parallel
+        _optimize_layout_euclidean_single_epoch, fastmath=True, parallel=parallel, nogil=True
     )
     for n in range(n_epochs):
         optimize_fn(
@@ -241,7 +242,7 @@ def optimize_layout_euclidean(
     return head_embedding
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def optimize_layout_generic(
     head_embedding,
     tail_embedding,
@@ -397,7 +398,11 @@ def optimize_layout_generic(
 
         alpha = initial_alpha * (1.0 - (float(n) / float(n_epochs)))
         if sleep_duration is not None:
-            time.sleep(sleep_duration)
+            with numba.objmode():
+                # Call into object mode to temporarily sleep (and thus release GIL)
+                logging.info("(obj mode) Fit epoch iteration.")
+                time.sleep(sleep_duration)
+
         if verbose and n % int(n_epochs / 10) == 0:
             print("\tcompleted ", n, " / ", n_epochs, "epochs")
 

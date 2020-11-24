@@ -11,7 +11,7 @@ _mock_cost = 1.0 - _mock_identity
 _mock_ones = np.ones(2, dtype=np.float64)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def sign(a):
     if a < 0:
         return -1
@@ -19,7 +19,7 @@ def sign(a):
         return 1
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def euclidean(x, y):
     """Standard euclidean distance.
 
@@ -32,7 +32,7 @@ def euclidean(x, y):
     return np.sqrt(result)
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def euclidean_grad(x, y):
     """Standard euclidean distance and its gradient.
 
@@ -48,7 +48,7 @@ def euclidean_grad(x, y):
     return d, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def standardised_euclidean(x, y, sigma=_mock_ones):
     """Euclidean distance standardised against a vector of standard
     deviations per coordinate.
@@ -63,7 +63,7 @@ def standardised_euclidean(x, y, sigma=_mock_ones):
     return np.sqrt(result)
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def standardised_euclidean_grad(x, y, sigma=_mock_ones):
     """Euclidean distance standardised against a vector of standard
     deviations per coordinate with gradient.
@@ -79,7 +79,7 @@ def standardised_euclidean_grad(x, y, sigma=_mock_ones):
     return d, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def manhattan(x, y):
     """Manhattan, taxicab, or l1 distance.
 
@@ -93,7 +93,7 @@ def manhattan(x, y):
     return result
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def manhattan_grad(x, y):
     """Manhattan, taxicab, or l1 distance with gradient.
 
@@ -108,7 +108,7 @@ def manhattan_grad(x, y):
     return result, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def chebyshev(x, y):
     """Chebyshev or l-infinity distance.
 
@@ -122,7 +122,7 @@ def chebyshev(x, y):
     return result
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def chebyshev_grad(x, y):
     """Chebyshev or l-infinity distance with gradient.
 
@@ -142,7 +142,7 @@ def chebyshev_grad(x, y):
     return result, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def minkowski(x, y, p=2):
     """Minkowski distance.
 
@@ -161,7 +161,7 @@ def minkowski(x, y, p=2):
     return result ** (1.0 / p)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def minkowski_grad(x, y, p=2):
     """Minkowski distance with gradient.
 
@@ -188,7 +188,7 @@ def minkowski_grad(x, y, p=2):
     return result ** (1.0 / p), grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def poincare(u, v):
     """Poincare distance.
 
@@ -202,7 +202,7 @@ def poincare(u, v):
     return np.arccosh(1 + 2 * (sq_dist / ((1 - sq_u_norm) * (1 - sq_v_norm))))
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def hyperboloid_grad(x, y):
     s = np.sqrt(1 + np.sum(x ** 2))
     t = np.sqrt(1 + np.sum(y ** 2))
@@ -225,7 +225,7 @@ def hyperboloid_grad(x, y):
     return np.arccosh(B), grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def weighted_minkowski(x, y, w=_mock_ones, p=2):
     """A weighted version of Minkowski distance.
 
@@ -243,7 +243,7 @@ def weighted_minkowski(x, y, w=_mock_ones, p=2):
     return result ** (1.0 / p)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def weighted_minkowski_grad(x, y, w=_mock_ones, p=2):
     """A weighted version of Minkowski distance with gradient.
 
@@ -270,7 +270,7 @@ def weighted_minkowski_grad(x, y, w=_mock_ones, p=2):
     return result ** (1.0 / p), grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def mahalanobis(x, y, vinv=_mock_identity):
     result = 0.0
 
@@ -288,7 +288,7 @@ def mahalanobis(x, y, vinv=_mock_identity):
     return np.sqrt(result)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def mahalanobis_grad(x, y, vinv=_mock_identity):
     result = 0.0
 
@@ -309,7 +309,7 @@ def mahalanobis_grad(x, y, vinv=_mock_identity):
     return dist, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def hamming(x, y):
     result = 0.0
     for i in range(x.shape[0]):
@@ -319,7 +319,7 @@ def hamming(x, y):
     return float(result) / x.shape[0]
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def canberra(x, y):
     result = 0.0
     for i in range(x.shape[0]):
@@ -330,7 +330,7 @@ def canberra(x, y):
     return result
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def canberra_grad(x, y):
     result = 0.0
     grad = np.zeros(x.shape)
@@ -346,7 +346,7 @@ def canberra_grad(x, y):
     return result, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def bray_curtis(x, y):
     numerator = 0.0
     denominator = 0.0
@@ -360,7 +360,7 @@ def bray_curtis(x, y):
         return 0.0
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def bray_curtis_grad(x, y):
     numerator = 0.0
     denominator = 0.0
@@ -378,7 +378,7 @@ def bray_curtis_grad(x, y):
     return dist, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def jaccard(x, y):
     num_non_zero = 0.0
     num_equal = 0.0
@@ -394,7 +394,7 @@ def jaccard(x, y):
         return float(num_non_zero - num_equal) / num_non_zero
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def matching(x, y):
     num_not_equal = 0.0
     for i in range(x.shape[0]):
@@ -405,7 +405,7 @@ def matching(x, y):
     return float(num_not_equal) / x.shape[0]
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def dice(x, y):
     num_true_true = 0.0
     num_not_equal = 0.0
@@ -421,7 +421,7 @@ def dice(x, y):
         return num_not_equal / (2.0 * num_true_true + num_not_equal)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def kulsinski(x, y):
     num_true_true = 0.0
     num_not_equal = 0.0
@@ -439,7 +439,7 @@ def kulsinski(x, y):
         )
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def rogers_tanimoto(x, y):
     num_not_equal = 0.0
     for i in range(x.shape[0]):
@@ -450,7 +450,7 @@ def rogers_tanimoto(x, y):
     return (2.0 * num_not_equal) / (x.shape[0] + num_not_equal)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def russellrao(x, y):
     num_true_true = 0.0
     for i in range(x.shape[0]):
@@ -464,7 +464,7 @@ def russellrao(x, y):
         return float(x.shape[0] - num_true_true) / (x.shape[0])
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def sokal_michener(x, y):
     num_not_equal = 0.0
     for i in range(x.shape[0]):
@@ -475,7 +475,7 @@ def sokal_michener(x, y):
     return (2.0 * num_not_equal) / (x.shape[0] + num_not_equal)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def sokal_sneath(x, y):
     num_true_true = 0.0
     num_not_equal = 0.0
@@ -491,7 +491,7 @@ def sokal_sneath(x, y):
         return num_not_equal / (0.5 * num_true_true + num_not_equal)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def haversine(x, y):
     if x.shape[0] != 2:
         raise ValueError("haversine is only defined for 2 dimensional data")
@@ -501,7 +501,7 @@ def haversine(x, y):
     return 2.0 * np.arcsin(result)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def haversine_grad(x, y):
     # spectral initialization puts many points near the poles
     # currently, adding pi/2 to the latitude avoids problems
@@ -531,7 +531,7 @@ def haversine_grad(x, y):
     return d, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def yule(x, y):
     num_true_true = 0.0
     num_true_false = 0.0
@@ -553,7 +553,7 @@ def yule(x, y):
         )
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def cosine(x, y):
     result = 0.0
     norm_x = 0.0
@@ -571,7 +571,7 @@ def cosine(x, y):
         return 1.0 - (result / np.sqrt(norm_x * norm_y))
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def cosine_grad(x, y):
     result = 0.0
     norm_x = 0.0
@@ -594,7 +594,7 @@ def cosine_grad(x, y):
     return dist, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def correlation(x, y):
     mu_x = 0.0
     mu_y = 0.0
@@ -624,7 +624,7 @@ def correlation(x, y):
         return 1.0 - (dot_product / np.sqrt(norm_x * norm_y))
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def hellinger(x, y):
     result = 0.0
     l1_norm_x = 0.0
@@ -643,7 +643,7 @@ def hellinger(x, y):
         return np.sqrt(1 - result / np.sqrt(l1_norm_x * l1_norm_y))
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def hellinger_grad(x, y):
     result = 0.0
     l1_norm_x = 0.0
@@ -674,7 +674,7 @@ def hellinger_grad(x, y):
     return dist, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def approx_log_Gamma(x):
     if x == 1:
         return 0
@@ -686,7 +686,7 @@ def approx_log_Gamma(x):
     #  x2*(77683.0/5796.0 + x2*(-236364091.0/1506960.0 + x2*(657931.0/300.0))))))))))))
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def log_beta(x, y):
     a = min(x, y)
     b = max(x, y)
@@ -699,7 +699,7 @@ def log_beta(x, y):
         return approx_log_Gamma(x) + approx_log_Gamma(y) - approx_log_Gamma(x + y)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def log_single_beta(x):
     return np.log(2.0) * (-2.0 * x + 0.5) + 0.5 * np.log(2.0 * np.pi / x) + 0.125 / x
 
@@ -712,13 +712,13 @@ def log_single_beta(x):
 #  x2*(14717667114151.0/3355443200.0 ))))))))))))
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def ll_dirichlet(data1, data2):
     """ The symmetric relative log likelihood of rolling data2 vs data1
     in n trials on a die that rolled data1 in sum(data1) trials.
-    
+
     ..math::
-        D(data1, data2) = DirichletMultinomail(data2 | data1)  
+        D(data1, data2) = DirichletMultinomail(data2 | data1)
     """
 
     n1 = np.sum(data1)
@@ -747,7 +747,7 @@ def ll_dirichlet(data1, data2):
     )
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def symmetric_kl(x, y, z=1e-11):
     """
     symmetrized KL divergence between two probability distributions
@@ -778,7 +778,7 @@ def symmetric_kl(x, y, z=1e-11):
     return (kl1 + kl2) / 2
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def symmetric_kl_grad(x, y, z=1e-11):
     """
     symmetrized KL divergence and its gradient
@@ -810,7 +810,7 @@ def symmetric_kl_grad(x, y, z=1e-11):
     return dist, grad
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def correlation_grad(x, y):
     mu_x = 0.0
     mu_y = 0.0
@@ -845,7 +845,7 @@ def correlation_grad(x, y):
     return dist, grad
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def sinkhorn_distance(x, y, M=_mock_identity, cost=_mock_cost, maxiter=64):
     p = (x / x.sum()).astype(np.float32)
     q = (y / y.sum()).astype(np.float32)
@@ -869,7 +869,7 @@ def sinkhorn_distance(x, y, M=_mock_identity, cost=_mock_cost, maxiter=64):
     return result
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def spherical_gaussian_energy_grad(x, y):
     mu_1 = x[0] - y[0]
     mu_2 = x[1] - y[1]
@@ -887,7 +887,7 @@ def spherical_gaussian_energy_grad(x, y):
     return dist, grad
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def diagonal_gaussian_energy_grad(x, y):
     mu_1 = x[0] - y[0]
     mu_2 = x[1] - y[1]
@@ -922,7 +922,7 @@ def diagonal_gaussian_energy_grad(x, y):
     return dist, grad
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def gaussian_energy_grad(x, y):
     mu_1 = x[0] - y[0]
     mu_2 = x[1] - y[1]
@@ -995,7 +995,7 @@ def gaussian_energy_grad(x, y):
     return dist, grad
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def spherical_gaussian_grad(x, y):
     mu_1 = x[0] - y[0]
     mu_2 = x[1] - y[1]
@@ -1096,7 +1096,7 @@ def count_distance(x, y, poisson_lambda=1.0, normalisation=1.0):
     return result / normalisation
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def levenshtein(x, y, normalisation=1.0, max_distance=20):
     x_len, y_len = len(x), len(y)
 

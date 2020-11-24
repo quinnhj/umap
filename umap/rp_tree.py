@@ -28,7 +28,7 @@ RandomProjectionTreeNode = namedtuple(
 FlatTree = namedtuple("FlatTree", ["hyperplanes", "offsets", "children", "indices"])
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def angular_random_projection_split(data, indices, rng_state):
     """Given a set of ``indices`` for data points from ``data``, create
     a random hyperplane to split the data, returning two arrays indices
@@ -220,7 +220,7 @@ def euclidean_random_projection_split(data, indices, rng_state):
     return indices_left, indices_right, hyperplane_vector, hyperplane_offset
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def sparse_angular_random_projection_split(inds, indptr, data, indices, rng_state):
     """Given a set of ``indices`` for data points from a sparse data set
     presented in csr sparse format as inds, indptr and data, create
@@ -338,7 +338,7 @@ def sparse_angular_random_projection_split(inds, indptr, data, indices, rng_stat
     return indices_left, indices_right, hyperplane, None
 
 
-@numba.njit(fastmath=True)
+@numba.njit(fastmath=True, nogil=True)
 def sparse_euclidean_random_projection_split(inds, indptr, data, indices, rng_state):
     """Given a set of ``indices`` for data points from a sparse data set
     presented in csr sparse format as inds, indptr and data, create
@@ -676,7 +676,7 @@ def flatten_tree(tree, leaf_size):
     return FlatTree(hyperplanes, offsets, children, indices)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def select_side(hyperplane, offset, point, rng_state):
     margin = offset
     for d in range(point.shape[0]):
@@ -694,7 +694,7 @@ def select_side(hyperplane, offset, point, rng_state):
         return 1
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def search_flat_tree(point, hyperplanes, offsets, children, indices, rng_state):
     node = 0
     while children[node, 0] > 0:
@@ -707,7 +707,7 @@ def search_flat_tree(point, hyperplanes, offsets, children, indices, rng_state):
     return indices[-children[node, 0]]
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def sparse_select_side(hyperplane, offset, point_inds, point_data, rng_state):
     margin = offset
 
@@ -733,7 +733,7 @@ def sparse_select_side(hyperplane, offset, point_inds, point_data, rng_state):
         return 1
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def search_sparse_flat_tree(
     point_inds, point_data, hyperplanes, offsets, children, indices, rng_state
 ):

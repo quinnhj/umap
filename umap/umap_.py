@@ -6,6 +6,7 @@ from __future__ import print_function
 import locale
 from warnings import warn
 import time
+import logging
 
 from scipy.optimize import curve_fit
 from sklearn.base import BaseEstimator
@@ -66,6 +67,8 @@ try:
     _HAVE_PYNNDESCENT = True
 except ImportError:
     _HAVE_PYNNDESCENT = False
+    logging.info("NO PYNNDESCENT")
+    raise
 
 locale.setlocale(locale.LC_NUMERIC, "C")
 
@@ -269,6 +272,7 @@ def nearest_neighbors(
         The random projection forest used for searching (if used, None otherwise)
     """
     if verbose:
+        logging.info("Finding Nearest Neighbors")
         print(ts(), "Finding Nearest Neighbors")
 
     if metric == "precomputed":
@@ -287,6 +291,7 @@ def nearest_neighbors(
         n_iters = max(5, int(round(np.log2(X.shape[0]))))
 
         if _HAVE_PYNNDESCENT and use_pynndescent:
+            logging.info("Using pynndescent")
             nnd = NNDescent(
                 X,
                 n_neighbors=n_neighbors,
@@ -380,9 +385,11 @@ def nearest_neighbors(
 
                 if verbose:
                     print(ts(), "Building RP forest with", str(n_trees), "trees")
+                    logging.info("Building RP forest")
                 rp_forest = make_forest(X, n_neighbors, n_trees, rng_state, angular)
                 leaf_array = rptree_leaf_array(rp_forest)
                 if verbose:
+                    logging.info("NN descent for n iters")
                     print(ts(), "NN descent for", str(n_iters), "iterations")
                 knn_indices, knn_dists = nn_descent(
                     X,
@@ -1028,6 +1035,8 @@ def simplicial_set_embedding(
     graph.data[graph.data < (graph.data.max() / float(n_epochs))] = 0.0
     graph.eliminate_zeros()
 
+    logging.info("set initial data for simplicial set embedding")
+
     if isinstance(init, str) and init == "random":
         embedding = random_state.uniform(
             low=-10.0, high=10.0, size=(graph.shape[0], n_components)
@@ -1076,6 +1085,8 @@ def simplicial_set_embedding(
         * (embedding - np.min(embedding, 0))
         / (np.max(embedding, 0) - np.min(embedding, 0))
     ).astype(np.float32, order="C")
+
+    logging.info("calling optimize layout")
 
     if euclidean_output:
         embedding = optimize_layout_euclidean(
@@ -1617,7 +1628,8 @@ class UMAP(BaseEstimator):
             The relevant attributes are ``target_metric`` and
             ``target_metric_kwds``.
         """
-
+        logging.info("started fit")
+        logging.info(f"_HAVE_PYNNDESCENT: {_HAVE_PYNNDESCENT}")
         X = check_array(X, dtype=np.float32, accept_sparse="csr", order="C")
         self._raw_data = X
 
@@ -1636,7 +1648,7 @@ class UMAP(BaseEstimator):
         self._initial_alpha = self.learning_rate
 
         self._validate_parameters()
-
+        logging.info("validated params")
         if self.verbose:
             print(str(self))
 
@@ -1700,7 +1712,7 @@ class UMAP(BaseEstimator):
 
         if self.sleep_duration is not None:
             time.sleep(self.sleep_duration)
-
+        logging.info("constructing fuzzy simplicial set")
         if self.verbose:
             print("Construct fuzzy simplicial set")
 
@@ -1800,6 +1812,8 @@ class UMAP(BaseEstimator):
                     nn_metric = self._input_distance_func
             else:
                 nn_metric = self._input_distance_func
+
+            logging.info("finding nearest neighbors")
             (self._knn_indices, self._knn_dists, self._rp_forest) = nearest_neighbors(
                 X[index],
                 self._n_neighbors,
@@ -1815,6 +1829,7 @@ class UMAP(BaseEstimator):
             if self.sleep_duration is not None:
                 time.sleep(self.sleep_duration)
 
+            logging.info("constructing fuzzy simplicial set")
             self.graph_, self._sigmas, self._rhos = fuzzy_simplicial_set(
                 X[index],
                 self.n_neighbors,
@@ -1979,6 +1994,7 @@ class UMAP(BaseEstimator):
         if self.sleep_duration is not None:
             time.sleep(self.sleep_duration)
 
+        logging.info("constructing embedding")
         if self.verbose:
             print(ts(), "Construct embedding")
 
@@ -2004,6 +2020,7 @@ class UMAP(BaseEstimator):
             self.sleep_duration
         )[inverse]
 
+        logging.info("finished constructing embedding")
         if self.verbose:
             print(ts() + " Finished embedding")
 
@@ -2049,6 +2066,9 @@ class UMAP(BaseEstimator):
         X_new : array, shape (n_samples, n_components)
             Embedding of the new data in low-dimensional space.
         """
+        logging.info("transforming")
+        logging.info(f"_HAVE_PYNNDESCENT: {_HAVE_PYNNDESCENT}")
+
         # If we fit just a single instance then error
         if self.embedding_.shape[0] == 1:
             raise ValueError(
@@ -2089,6 +2109,7 @@ class UMAP(BaseEstimator):
             indices = submatrix(indices, indices_sorted, self._n_neighbors)
             dists = submatrix(dmat_shortened, indices_sorted, self._n_neighbors)
         elif _HAVE_PYNNDESCENT:
+            logging.info("pynndescent indices + dists")
             indices, dists = self._rp_forest.query(X, self.n_neighbors)
         elif self._sparse_data:
             if not scipy.sparse.issparse(X):
@@ -2127,6 +2148,7 @@ class UMAP(BaseEstimator):
             indices = indices[:, : self._n_neighbors]
             dists = dists[:, : self._n_neighbors]
         else:
+            logging.info("umap (not pynndescent) indices + dists")
             init = initialise_search(
                 self._rp_forest,
                 self._raw_data,
@@ -2159,6 +2181,8 @@ class UMAP(BaseEstimator):
         # Assign bad indices random points as their nearest neighbors
         indices[bad_indices_mask] = np.random.randint(self._raw_data.shape[0], size=(np.sum(bad_indices_mask),self._n_neighbors))
 
+        logging.info("checked for bad indices")
+
         dists = dists.astype(np.float32, order="C")
 
         adjusted_local_connectivity = max(0.0, self.local_connectivity - 1.0)
@@ -2167,6 +2191,8 @@ class UMAP(BaseEstimator):
             float(self._n_neighbors),
             local_connectivity=float(adjusted_local_connectivity),
         )
+
+        logging.info("computing membership strengths")
 
         rows, cols, vals = compute_membership_strengths(indices, dists, sigmas, rhos)
 
@@ -2204,6 +2230,8 @@ class UMAP(BaseEstimator):
         #     self._output_distance_func,
         #     tuple(self.output_metric_kwds.values()),
         # )
+
+        logging.info("Calling optimize layout")
 
         if self.output_metric == "euclidean":
             embedding = optimize_layout_euclidean(

@@ -96,7 +96,7 @@ def norm(vec):
     return np.sqrt(result)
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def rejection_sample(n_samples, pool_size, rng_state):
     """Generate n_samples many integers from 0 to pool_size such that no
     integer is selected twice. The duplication constraint is achieved via
@@ -133,7 +133,7 @@ def rejection_sample(n_samples, pool_size, rng_state):
     return result
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def make_heap(n_points, size):
     """Constructor for the numba enabled heap objects. The heaps are used
     for approximate nearest neighbor search, maintaining a list of potential
@@ -166,7 +166,7 @@ def make_heap(n_points, size):
     return result
 
 
-@numba.njit("i8(f8[:,:,:],i8,f8,i8,i8)")
+@numba.njit("i8(f8[:,:,:],i8,f8,i8,i8)", nogil=True)
 def heap_push(heap, row, weight, index, flag):
     """Push a new element onto the heap. The heap stores potential neighbors
     for each data point. The ``row`` parameter determines which data point we
@@ -250,7 +250,7 @@ def heap_push(heap, row, weight, index, flag):
     return 1
 
 
-@numba.njit("i8(f8[:,:,:],i8,f8,i8,i8)")
+@numba.njit("i8(f8[:,:,:],i8,f8,i8,i8)", nogil=True)
 def unchecked_heap_push(heap, row, weight, index, flag):
     """Push a new element onto the heap. The heap stores potential neighbors
     for each data point. The ``row`` parameter determines which data point we
@@ -328,7 +328,7 @@ def unchecked_heap_push(heap, row, weight, index, flag):
     return 1
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def siftdown(heap1, heap2, elt):
     """Restore the heap property for a heap with an out of place element
     at position ``elt``. This works with a heap pair where heap1 carries
@@ -352,7 +352,7 @@ def siftdown(heap1, heap2, elt):
             elt = swap
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def deheap_sort(heap):
     """Given an array of heaps (of indices and weights), unpack the heap
     out to give and array of sorted lists of indices and weights by increasing
@@ -396,7 +396,7 @@ def deheap_sort(heap):
     return indices.astype(np.int64), weights
 
 
-@numba.njit("i8(f8[:, :, :],i8)")
+@numba.njit("i8(f8[:, :, :],i8)", nogil=True)
 def smallest_flagged(heap, row):
     """Search the heap for the smallest element that is
     still flagged.
@@ -478,7 +478,7 @@ def build_candidates(current_graph, n_vertices, n_neighbors, max_candidates, rng
     return candidate_neighbors
 
 
-@numba.njit()
+@numba.njit(nogil=True)
 def new_build_candidates(
     current_graph, n_vertices, n_neighbors, max_candidates, rng_state, rho=0.5
 ):  # pragma: no cover
