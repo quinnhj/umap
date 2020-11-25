@@ -2177,9 +2177,26 @@ class UMAP(BaseEstimator):
         index_check = np.array([len(np.unique(x)) for x in indices])
         bad_indices_mask = (index_check < self._n_neighbors)
         bad_indices_list = np.where(bad_indices_mask)[0].tolist()
+        logging.info(f"bad indices: {bad_indices_list}")
         dists[bad_indices_mask] = np.max(dists)
+
+        # From github comment, doesn't quite work because it samples with replacement, which
+        # will produce a sparse graph with duplicate edges, which will fail later due to
+        # dimension issues.
+        #
+        # Included for reference/completeness.
+        #
         # Assign bad indices random points as their nearest neighbors
-        indices[bad_indices_mask] = np.random.randint(self._raw_data.shape[0], size=(np.sum(bad_indices_mask),self._n_neighbors))
+        # indices[bad_indices_mask] = np.random.randint(self._raw_data.shape[0], size=(np.sum(bad_indices_mask),self._n_neighbors))
+
+        num_bad_indices = np.sum(bad_indices_mask)
+        random_indices = np.zeros((num_bad_indices, self._n_neighbors), dtype=int)
+        # Is there a cleaner way to do this?
+        for i in range(num_bad_indices):
+            fake_neighbor_list = np.random.choice(self._raw_data.shape[0], self._n_neighbors, replace=False)
+            random_indices[i, :] = fake_neighbor_list
+        indices[bad_indices_mask] = random_indices
+
 
         logging.info("checked for bad indices")
 
@@ -2199,11 +2216,15 @@ class UMAP(BaseEstimator):
         graph = scipy.sparse.coo_matrix(
             (vals, (rows, cols)), shape=(X.shape[0], self._raw_data.shape[0])
         )
+        orig_graph_shape_str = str(graph.shape)
+        logging.info(f"orig graph shape: {orig_graph_shape_str}")
 
         # This was a very specially constructed graph with constant degree.
         # That lets us do fancy unpacking by reshaping the csr matrix indices
         # and data. Doing so relies on the constant degree assumption!
         csr_graph = normalize(graph.tocsr(), norm="l1")
+        csr_graph_indices_shape_str = str(csr_graph.indices.shape)
+        logging.info(f"csr_graph_indices_shape: {csr_graph_indices_shape_str}")
         inds = csr_graph.indices.reshape(X.shape[0], self._n_neighbors)
         weights = csr_graph.data.reshape(X.shape[0], self._n_neighbors)
         embedding = init_transform(inds, weights, self.embedding_)
