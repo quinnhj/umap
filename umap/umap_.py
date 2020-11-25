@@ -68,7 +68,6 @@ try:
 except ImportError:
     _HAVE_PYNNDESCENT = False
     logging.info("NO PYNNDESCENT")
-    raise
 
 locale.setlocale(locale.LC_NUMERIC, "C")
 
